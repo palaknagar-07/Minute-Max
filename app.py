@@ -293,117 +293,362 @@ def create_interface():
     print("Initializing Meeting Minutes Generator...")
     generator = MeetingMinutesGenerator()
     
-    # Create Gradio interface
-    with gr.Blocks(title="Meeting Minutes Generator") as demo:
-        gr.Markdown(
-            """
-            # 🎙️ Meeting Minutes Generator
-            
-            Upload your meeting audio and get automatic transcription, summary, and formatted meeting minutes!
-            
-            **Supported formats:** WAV, MP3, M4A, FLAC, OGG
-            """
-        )
-        
+    # Custom CSS for dark theme and better styling
+    custom_css = """
+    :root {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: #1e293b;
+        --text-primary: #f8fafc;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+        --success: #10b981;
+        --error: #ef4444;
+    }
+    
+    .gradio-container {
+        max-width: 1200px !important;
+        margin: 0 auto;
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        background: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    .header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem 0;
+        background: linear-gradient(90deg, #1e40af 0%, #1e3a8a 100%);
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    .header h1 {
+        margin-bottom: 0.5rem;
+        color: white !important;
+        font-weight: 700;
+        font-size: 2rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header p {
+        color: #e2e8f0 !important;
+        margin-top: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .card {
+        background: var(--bg-card) !important;
+        border-radius: 10px !important;
+        padding: 1.5rem !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+        margin-bottom: 1.5rem !important;
+        border: 1px solid var(--border-color) !important;
+    }
+    
+    .card h2, .card h3 {
+        color: var(--text-primary) !important;
+        font-size: 1.25rem !important;
+        margin-top: 0 !important;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem !important;
+    }
+    
+    .btn-primary {
+        background: var(--primary) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.75rem 1.5rem !important;
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    .btn-primary:hover {
+        background: var(--primary-dark) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+    }
+    
+    .btn-secondary {
+        background: var(--bg-secondary) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        padding: 0.5rem 1.25rem !important;
+        border-radius: 8px !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .btn-secondary:hover {
+        background: #2d3748 !important;
+        transform: translateY(-1px);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-left: 0.5rem;
+    }
+    
+    .status-success {
+        background: rgba(16, 185, 129, 0.1) !important;
+        color: var(--success) !important;
+        border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    }
+    
+    .status-error {
+        background: rgba(239, 68, 68, 0.1) !important;
+        color: var(--error) !important;
+        border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    }
+    
+    /* Input fields */
+    .gradio-textbox, .gradio-textarea {
+        background: var(--bg-secondary) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        border-radius: 8px !important;
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .gradio-textbox:focus, .gradio-textarea:focus {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    }
+    
+    /* Tabs */
+    .gradio-tab-nav {
+        border-bottom: 1px solid var(--border-color) !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .gradio-tab-nav button {
+        color: var(--text-secondary) !important;
+        padding: 0.75rem 1.25rem !important;
+        border: none !important;
+        background: transparent !important;
+        border-bottom: 2px solid transparent !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .gradio-tab-nav button.selected {
+        color: var(--primary) !important;
+        border-bottom: 2px solid var(--primary) !important;
+    }
+    
+    .gradio-tab-nav button:hover {
+        color: var(--text-primary) !important;
+        background: rgba(59, 130, 246, 0.1) !important;
+    }
+    
+    /* Accordion */
+    .gradio-accordion {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        margin-top: 1.5rem !important;
+    }
+    
+    .gradio-accordion-header {
+        color: var(--text-primary) !important;
+        padding: 1rem 1.5rem !important;
+        font-weight: 500 !important;
+    }
+    
+    .gradio-accordion-content {
+        padding: 1rem 1.5rem !important;
+        border-top: 1px solid var(--border-color) !important;
+    }
+    
+    /* Progress bar */
+    .progress-bar {
+        background: var(--primary) !important;
+    }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+    }
+    """
+    
+    with gr.Blocks(title="Meeting Minutes Generator", css=custom_css) as demo:
+        # Header Section
         with gr.Row():
-            with gr.Column():
-                meeting_title = gr.Textbox(
-                    label="Meeting Title",
-                    placeholder="Enter meeting title (optional)",
-                    value="Team Meeting"
-                )
+            with gr.Column(scale=12):
+                with gr.Column(elem_classes="header"):
+                    gr.Markdown("""
+                    # 🎙️ Meeting Minutes Generator
+                    Automatically transcribe, summarize, and format meeting minutes from audio recordings
+                    """)
+        
+        # Main Content
+        with gr.Row():
+            # Left Panel - Inputs
+            with gr.Column(scale=1):
+                with gr.Group(elem_classes="card"):
+                    gr.Markdown("### 📋 Meeting Details")
+                    meeting_title = gr.Textbox(
+                        label="Meeting Title",
+                        placeholder="E.g., Weekly Team Sync",
+                        value="Team Meeting",
+                        lines=1
+                    )
+                    
+                    audio_input = gr.Audio(
+                        label="Upload Meeting Audio",
+                        type="filepath",
+                        interactive=True
+                    )
+                    
+                    with gr.Row():
+                        process_btn = gr.Button(
+                            "🚀 Generate Minutes",
+                            variant="primary",
+                            size="lg",
+                            elem_classes="btn-primary"
+                        )
+                        clear_btn = gr.Button("🔄 Clear", variant="secondary")
                 
-                audio_input = gr.Audio(
-                    label="Upload Meeting Audio",
-                    type="filepath"
-                )
-                
-                process_btn = gr.Button("🚀 Generate Meeting Minutes", variant="primary", size="lg")
+                # System Status Card
+                with gr.Group(elem_classes="card"):
+                    gr.Markdown("### ⚙️ System Status")
+                    
+                    model_status = gr.HTML(
+                        f"""
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div>Transcription: <span class="status-badge status-{"success" if generator.transcription_pipe else "error"}">
+                                {'✅ Loaded' if generator.transcription_pipe else '❌ Failed'}
+                            </span></div>
+                            <div>Summarization: <span class="status-badge status-{"success" if generator.summarization_pipe else "error"}">
+                                {'✅ Loaded' if generator.summarization_pipe else '❌ Failed'}
+                            </span></div>
+                            <div>Device: <strong>{'GPU' if 'cuda' in str(generator.device) else 'CPU'}</strong></div>
+                        </div>
+                        """
+                    )
             
-            with gr.Column():
-                gr.Markdown("### System Status")
-                status_info = gr.Markdown(f"""
-                - **Transcription Model:** {'✅ Loaded' if generator.transcription_pipe else '❌ Failed to load'}
-                - **Summarization Model:** {'✅ Loaded' if generator.summarization_pipe else '❌ Failed to load'}
-                - **Device:** {generator.device}
+            # Right Panel - Outputs
+            with gr.Column(scale=2):
+                with gr.Tabs():
+                    with gr.TabItem("📝 Transcript"):
+                        transcript_output = gr.Textbox(
+                            label="",
+                            lines=15,
+                            max_lines=20,
+                            show_copy_button=True,
+                            container=False
+                        )
+                    
+                    with gr.TabItem("📋 Summary"):
+                        summary_output = gr.Textbox(
+                            label="",
+                            lines=8,
+                            max_lines=15,
+                            show_copy_button=True,
+                            container=False
+                        )
+                    
+                    with gr.TabItem("📄 Meeting Minutes"):
+                        meeting_minutes_output = gr.Textbox(
+                            label="",
+                            lines=15,
+                            max_lines=30,
+                            show_copy_button=True,
+                            interactive=True,
+                            container=False
+                        )
+                
+                # Action Buttons
+                with gr.Row():
+                    download_btn = gr.Button(
+                        "💾 Download Minutes",
+                        variant="primary",
+                        elem_classes="btn-secondary"
+                    )
+                    clear_output_btn = gr.Button("🗑️ Clear Output", variant="secondary")
+                
+                download_file = gr.File(label="Download Link", visible=False)
+        
+        # Footer with Tips
+        with gr.Row():
+            with gr.Accordion("💡 Tips for Best Results", open=False):
+                gr.Markdown("""
+                - 🎤 Use clear audio with minimal background noise
+                - 🎙️ Ensure speakers are close to the microphone
+                - ⏱️ For long meetings (>30 min), consider splitting into segments
+                - 📝 Review and edit the generated minutes as needed
+                - 🔄 If models fail to load, check your internet connection
                 """)
         
-        with gr.Row():
-            with gr.Column():
-                transcript_output = gr.Textbox(
-                    label="📝 Transcript",
-                    lines=10,
-                    max_lines=15,
-                    show_copy_button=True
-                )
-            
-            with gr.Column():
-                summary_output = gr.Textbox(
-                    label="📋 Summary",
-                    lines=5,
-                    max_lines=10,
-                    show_copy_button=True
-                )
+        # Event Handlers
+        def clear_inputs():
+            return [None, "Team Meeting", "", "", ""]
         
-        meeting_minutes_output = gr.Textbox(
-            label="📄 Meeting Minutes",
-            lines=20,
-            max_lines=30,
-            show_copy_button=True,
-            interactive=True  # Allow editing
-        )
-
-        download_btn = gr.Button("💾 Download Meeting Minutes", variant="secondary")
-        download_file = gr.File(label="Download Link", visible=False)
+        def clear_outputs():
+            return ["", "", ""]
         
-        # Event handlers
-        def download_minutes(minutes_text):
-            if not minutes_text:
-                return None
-            
-            try:
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                file_path = f"meeting_minutes_{timestamp}.txt"
-                
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(minutes_text)
-                return file_path
-            except Exception as e:
-                print(f"Download error: {e}")
-                return None
-
+        # Button Actions
         process_btn.click(
             fn=generator.process_meeting_audio,
             inputs=[audio_input, meeting_title],
             outputs=[transcript_output, summary_output, meeting_minutes_output],
-            show_progress="full"
+            show_progress="minimal"
         )
-
+        
+        clear_btn.click(
+            fn=clear_inputs,
+            outputs=[audio_input, meeting_title, transcript_output, summary_output, meeting_minutes_output]
+        )
+        
+        clear_output_btn.click(
+            fn=clear_outputs,
+            outputs=[transcript_output, summary_output, meeting_minutes_output]
+        )
+        
         download_btn.click(
             fn=download_minutes,
             inputs=meeting_minutes_output,
             outputs=download_file
         )
-        
-        # Examples and tips
-        gr.Markdown(
-            """
-            ## 💡 Tips for Best Results:
-            - Use clear audio with minimal background noise
-            - Ensure speakers are close to the microphone
-            - For long meetings (>30 minutes), consider splitting into smaller segments
-            - Review and edit the generated minutes as needed
-            - If models fail to load, check your internet connection and available memory
-            
-            ## 🔧 Technical Details:
-            - Uses OpenAI Whisper (small) for transcription
-            - Uses Facebook BART for summarization
-            - Supports GPU acceleration when available
-            - Processes audio in chunks for memory efficiency
-            """
-        )
     
     return demo
+
+def download_minutes(minutes_text):
+    if not minutes_text:
+        return None
+    
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_path = f"meeting_minutes_{timestamp}.txt"
+        
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(minutes_text)
+        return file_path
+    except Exception as e:
+        print(f"Download error: {e}")
+        return None
 
 if __name__ == "__main__":
     try:
