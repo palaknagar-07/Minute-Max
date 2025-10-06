@@ -49,7 +49,7 @@ An intelligent web application that automatically transcribes meeting audio, gen
 
 ## 📖 Usage
 
-1. **Enter Meeting Title** (optional)
+1. **Enter Meeting Title**
 2. **Upload Audio File** (WAV, MP3, M4A, FLAC, OGG)
 3. **Click "Generate Meeting Minutes"**
 4. **Review and Edit** the generated minutes
