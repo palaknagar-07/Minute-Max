@@ -108,7 +108,7 @@ demo.launch(
 - **BART Model**: `facebook/bart-large-cnn`
 - **Device**: Auto-detects CPU/GPU
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
